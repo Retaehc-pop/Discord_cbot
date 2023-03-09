@@ -1,0 +1,11 @@
+{
+  "prefix": "!",
+  "token": "ODY2MTg0Nzg5ODExMzk2NjQ5.GAayhx.IXSzSr2WjPRO2zsuJbRlGzDil-NWpVlrtS2UAo",
+  "permissions": "1099511627775",
+  "application_id": "866184789811396649",
+  "sync_commands_globally": false,
+  "owners": [
+    267572826418970624
+  ],
+  "status":  ["Python", "C", "Haskell", "Javascript", ""]
+}
