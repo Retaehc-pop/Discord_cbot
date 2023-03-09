@@ -272,10 +272,12 @@ async def on_command_error(context: Context, error) -> None:
             color=0xE02B2B,
         )
         await context.send(embed=embed)
+        
     elif isinstance(error, exceptions.YTDLError):
         embed = discord.Embed(
             description=f"An error occurred {error}",
            color=0xE02B2B, )
+        
     elif isinstance(error, exceptions.VoiceError):
         embed = discord.Embed(
             description=f"An error occurred while trying to play the requested song.{error}",
