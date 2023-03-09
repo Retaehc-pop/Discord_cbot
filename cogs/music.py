@@ -142,7 +142,7 @@ class Song:
         embed = (discord.Embed(title='Now playing',
                                description='```css\n{0.source.title}\n```'.format(
                                    self),
-                               color=discord.Color.blurple())
+                               color=0xEEEEEE)
                  .add_field(name='Duration', value=self.source.duration)
                  .add_field(name='Requested by', value=self.requester.mention)
                  .add_field(name='Uploader', value='[{0.source.uploader}]({0.source.uploader_url})'.format(self))
@@ -294,6 +294,7 @@ class Music(commands.Cog, name="music"):
             return
 
         ctx.voice_state.voice = await destination.connect()
+        await ctx.message.add_reaction('✅')
 
     @commands.command(name='summon')
     @commands.has_permissions(manage_guild=True)
@@ -312,6 +313,7 @@ class Music(commands.Cog, name="music"):
             return
 
         ctx.voice_state.voice = await destination.connect()
+        await ctx.message.add_reaction('✅')
 
     @commands.command(name='leave', aliases=['disconnect', 'dc'])
     @commands.has_permissions(manage_guild=True)
@@ -328,6 +330,7 @@ class Music(commands.Cog, name="music"):
 
         await ctx.voice_state.stop()
         del self.voice_states[ctx.guild.id]
+        await ctx.message.add_reaction('👋')
 
     @commands.command(name='volume')
     async def _volume(self, ctx: commands.Context, *, volume: int) -> None:
@@ -340,20 +343,24 @@ class Music(commands.Cog, name="music"):
             return await ctx.send('Volume must be between 0 and 100')
 
         ctx.voice_state.volume = volume / 100
-        await ctx.send('Volume of the player set to {}%'.format(volume))
+        embed = discord.Embed(
+            title="Volume",
+            description=f"{'▓'*(volume//10)}{'░'*(10-volume//10)} {volume}",
+            color=0xEEEEEE
+        )
+        await ctx.send(embed=embed)
 
     @commands.command(name='now', aliases=['current', 'playing'])
     async def _now(self, ctx: commands.Context):
         """Displays the currently playing song."""
-
-        await ctx.send(embed=ctx.voice_state.current.create_embed())
+        await ctx.send(embed=ctx.voice_state.current.create_embed())    
 
     @commands.command(name='pause')
     @commands.has_permissions(manage_guild=True)
     async def _pause(self, ctx: commands.Context):
         """Pauses the currently playing song."""
 
-        if not ctx.voice_state.is_playing and ctx.voice_state.voice.is_playing():
+        if ctx.voice_state.is_playing and ctx.voice_state.voice.is_playing():
             ctx.voice_state.voice.pause()
             await ctx.message.add_reaction('⏯')
 
@@ -362,7 +369,7 @@ class Music(commands.Cog, name="music"):
     async def _resume(self, ctx: commands.Context):
         """Resumes a currently paused song."""
 
-        if not ctx.voice_state.is_playing and ctx.voice_state.voice.is_paused():
+        if ctx.voice_state.is_playing and ctx.voice_state.voice.is_paused():
             ctx.voice_state.voice.resume()
             await ctx.message.add_reaction('⏯')
 
@@ -373,7 +380,7 @@ class Music(commands.Cog, name="music"):
 
         ctx.voice_state.songs.clear()
 
-        if not ctx.voice_state.is_playing:
+        if ctx.voice_state.is_playing:
             ctx.voice_state.voice.stop()
             await ctx.message.add_reaction('⏹')
 
@@ -411,7 +418,7 @@ class Music(commands.Cog, name="music"):
         """
 
         if len(ctx.voice_state.songs) == 0:
-            return await ctx.send('Empty queue.')
+            return await ctx.send(embed=discord.Embed(title="Empty Queue", color=0xEEEEEE))
 
         items_per_page = 10
         pages = math.ceil(len(ctx.voice_state.songs) / items_per_page)
@@ -433,7 +440,7 @@ class Music(commands.Cog, name="music"):
         """Shuffles the queue."""
 
         if len(ctx.voice_state.songs) == 0:
-            return await ctx.send('Empty queue.')
+            return await ctx.send(embed=discord.Embed(title="Empty Queue", color=0xEEEEEE))
 
         ctx.voice_state.songs.shuffle()
         await ctx.message.add_reaction('✅')
@@ -443,7 +450,7 @@ class Music(commands.Cog, name="music"):
         """Removes a song from the queue at a given index."""
 
         if len(ctx.voice_state.songs) == 0:
-            return await ctx.send('Empty queue.')
+            return await ctx.send(embed=discord.Embed(title="Empty Queue", color=0xEEEEEE))
 
         ctx.voice_state.songs.remove(index - 1)
         await ctx.message.add_reaction('✅')
@@ -455,7 +462,7 @@ class Music(commands.Cog, name="music"):
         """
 
         if not ctx.voice_state.is_playing:
-            return await ctx.send('Nothing being played at the moment.')
+            return await ctx.send(embed=discord.Embed(title="No song is currently playing", color=0xEEEEEE))
 
         # Inverse boolean value to loop and unloop.
         ctx.voice_state.loop = not ctx.voice_state.loop
@@ -476,13 +483,16 @@ class Music(commands.Cog, name="music"):
         async with ctx.typing():
             try:
                 source = await YTDLSource.create_source(ctx, search, loop=self.bot.loop)
+                await ctx.message.add_reaction('🎤')
             except YTDLError as e:
                 await ctx.send('An error occurred while processing this request: {}'.format(str(e)))
             else:
                 song = Song(source)
 
                 await ctx.voice_state.songs.put(song)
-                await ctx.send('Enqueued {}'.format(str(source)))
+                embed = discord.Embed(title="Added to queue", description=f"**{source.title}**", color=0xEEEEEE)
+                await ctx.send(embed=embed)
+                await ctx.message.add_reaction('⌛')
 
     @_join.before_invoke
     @_play.before_invoke
