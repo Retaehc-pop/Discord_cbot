@@ -5,7 +5,8 @@ import math
 import random
 
 import discord
-import youtube_dl
+# import youtube_dl
+import yt_dlp as youtube_dl
 # import yt_dlp as youtube_dl
 from async_timeout import timeout
 from discord.ext import commands
@@ -14,6 +15,7 @@ from exceptions import *
 from helpers import checks
 
 youtube_dl.utils.bug_reports_message = lambda: ''
+
 
 class YTDLSource(discord.PCMVolumeTransformer):
     YTDL_OPTIONS = {
@@ -273,16 +275,14 @@ class Music(commands.Cog, name="music"):
 
     def cog_check(self, ctx: commands.Context):
         if not ctx.guild:
-            raise commands.NoPrivateMessage(
-                'This command can\'t be used in DM channels.')
-
+            raise commands.NoPrivateMessage('This command can\'t be used in DM channels.')
         return True
 
     async def cog_before_invoke(self, ctx: commands.Context):
         ctx.voice_state = self.get_voice_state(ctx)
 
-    # async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError):
-    #     await ctx.send('An error occurred: {}'.format(str(error)))
+    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError):
+        await ctx.send('An error occurred: {}'.format(str(error)))
 
     @commands.command(name='join', invoke_without_subcommand=True, description="Join the Channel")
     async def _join(self, ctx: commands.Context):
@@ -297,7 +297,7 @@ class Music(commands.Cog, name="music"):
 
     @commands.command(name='summon')
     @commands.has_permissions(manage_guild=True)
-    async def _summon(self, ctx: commands.Context, *, channel: discord.VoiceChannel = None):
+    async def _summon(self, ctx: commands.Context, *, channel: discord.VoiceChannel = None) -> None:
         """Summons the bot to a voice channel.
         If no channel was specified, it joins your channel.
         """
@@ -313,19 +313,24 @@ class Music(commands.Cog, name="music"):
 
         ctx.voice_state.voice = await destination.connect()
 
-    @commands.command(name='leave', aliases=['disconnect'])
+    @commands.command(name='leave', aliases=['disconnect', 'dc'])
     @commands.has_permissions(manage_guild=True)
-    async def _leave(self, ctx: commands.Context):
+    async def _leave(self, ctx: commands.Context) -> None:
         """Clears the queue and leaves the voice channel."""
 
         if not ctx.voice_state.voice:
-            return await ctx.send('Not connected to any voice channel.')
+            embed = discord.Embed(
+                title="Not connected to any voice channel.",
+                color=0xE02B2B
+            )
+            await ctx.send(embed=embed)
+            return 
 
         await ctx.voice_state.stop()
         del self.voice_states[ctx.guild.id]
 
     @commands.command(name='volume')
-    async def _volume(self, ctx: commands.Context, *, volume: int):
+    async def _volume(self, ctx: commands.Context, *, volume: int) -> None:
         """Sets the volume of the player."""
 
         if not ctx.voice_state.is_playing:
