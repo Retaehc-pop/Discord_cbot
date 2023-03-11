@@ -6,7 +6,7 @@ from discord.ext.commands import Context
 from helpers import checks, db_manager
 
 
-class Moderation(commands.Cog, name="moderation"):
+class Moderation(commands.Cog, name="mod"):
     def __init__(self, bot):
         self.bot = bot
 
@@ -26,10 +26,8 @@ class Moderation(commands.Cog, name="moderation"):
     ) -> None:
         """
         Kick a user out of the server.
-
-        :param context: The hybrid command context.
-        :param user: The user that should be kicked from the server.
-        :param reason: The reason for the kick. Default is "Not specified".
+        
+        kick [user] [reason]
         """
         member = context.guild.get_member(user.id) or await context.guild.fetch_member(
             user.id
@@ -79,9 +77,7 @@ class Moderation(commands.Cog, name="moderation"):
         """
         Change the nickname of a user on a server.
 
-        :param context: The hybrid command context.
-        :param user: The user that should have its nickname changed.
-        :param nickname: The new nickname of the user. Default is None, which will reset the nickname.
+        nock [user] [nickname]
         """
         member = context.guild.get_member(user.id) or await context.guild.fetch_member(
             user.id
@@ -117,9 +113,7 @@ class Moderation(commands.Cog, name="moderation"):
         """
         Bans a user from the server.
 
-        :param context: The hybrid command context.
-        :param user: The user that should be banned from the server.
-        :param reason: The reason for the ban. Default is "Not specified".
+        ban [user] [reason].
         """
         member = context.guild.get_member(user.id) or await context.guild.fetch_member(
             user.id
@@ -162,8 +156,6 @@ class Moderation(commands.Cog, name="moderation"):
     async def warning(self, context: Context) -> None:
         """
         Manage warnings of a user on a server.
-
-        :param context: The hybrid command context.
         """
         if context.invoked_subcommand is None:
             embed = discord.Embed(
@@ -188,9 +180,7 @@ class Moderation(commands.Cog, name="moderation"):
         """
         Warns a user in his private messages.
 
-        :param context: The hybrid command context.
-        :param user: The user that should be warned.
-        :param reason: The reason for the warn. Default is "Not specified".
+        warning add [user] [reason]
         """
         member = context.guild.get_member(user.id) or await context.guild.fetch_member(
             user.id
@@ -230,9 +220,7 @@ class Moderation(commands.Cog, name="moderation"):
         """
         Warns a user in his private messages.
 
-        :param context: The hybrid command context.
-        :param user: The user that should get their warning removed.
-        :param warn_id: The ID of the warning that should be removed.
+        warning remove [user] [warn_id]
         """
         member = context.guild.get_member(user.id) or await context.guild.fetch_member(
             user.id
@@ -254,9 +242,8 @@ class Moderation(commands.Cog, name="moderation"):
     async def warning_list(self, context: Context, user: discord.User):
         """
         Shows the warnings of a user in the server.
-
-        :param context: The hybrid command context.
-        :param user: The user you want to get the warnings of.
+        
+        warning list [user]
         """
         warnings_list = await db_manager.get_warnings(user.id, context.guild.id)
         embed = discord.Embed(title=f"Warnings of {user}", color=0xEEEEEE)
@@ -281,8 +268,7 @@ class Moderation(commands.Cog, name="moderation"):
         """
         Delete a number of messages.
 
-        :param context: The hybrid command context.
-        :param amount: The number of messages that should be deleted.
+        purge [amount]
         """
         await context.send(
             "Deleting messages..."
@@ -311,9 +297,7 @@ class Moderation(commands.Cog, name="moderation"):
         """
         Bans a user without the user having to be in the server.
 
-        :param context: The hybrid command context.
-        :param user_id: The ID of the user that should be banned.
-        :param reason: The reason for the ban. Default is "Not specified".
+        hackban [user_id] [reason]
         """
         try:
             await self.bot.http.ban(user_id, context.guild.id, reason=reason)

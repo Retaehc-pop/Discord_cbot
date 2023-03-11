@@ -4,7 +4,7 @@ import aiohttp
 import discord
 from discord.ext import commands
 from discord.ext.commands import Context
-
+from discord import app_commands
 from helpers import checks
 
 
@@ -13,14 +13,14 @@ class Choice(discord.ui.View):
         super().__init__()
         self.value = None
 
-    @discord.ui.button(label="Heads", style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label="🗣️", style=discord.ButtonStyle.blurple)
     async def confirm(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
         self.value = "heads"
         self.stop()
 
-    @discord.ui.button(label="Tails", style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label="🐋", style=discord.ButtonStyle.blurple)
     async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
         self.value = "tails"
         self.stop()
@@ -95,13 +95,51 @@ class Fun(commands.Cog, name="fun"):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.hybrid_command(
+        name="8ball",
+        description="Ask any question to the bot.",
+    )
+    @checks.not_blacklisted()
+    @app_commands.describe(question="The question you want to ask.")
+    async def eight_ball(self, context: Context, *, question: str) -> None:
+        """
+        Ask any question to the bot.
+        """
+        answers = [
+            "It is certain.",
+            "It is decidedly so.",
+            "You may rely on it.",
+            "Without a doubt.",
+            "Yes - definitely.",
+            "As I see, yes.",
+            "Most likely.",
+            "Outlook good.",
+            "Yes.",
+            "Signs point to yes.",
+            "Reply hazy, try again.",
+            "Ask again later.",
+            "Better not tell you now.",
+            "Cannot predict now.",
+            "Concentrate and ask again later.",
+            "Don't count on it.",
+            "My reply is no.",
+            "My sources say no.",
+            "Outlook not so good.",
+            "Very doubtful.",
+        ]
+        embed = discord.Embed(
+            title="**My Answer:**",
+            description=f"{random.choice(answers)}",
+            color=0xEEEEEE,
+        )
+        embed.set_footer(text=f"The question was: {question}")
+        await context.send(embed=embed)
+
     @commands.hybrid_command(name="randomfact", description="Get a random fact.")
     @checks.not_blacklisted()
     async def randomfact(self, context: Context) -> None:
         """
         Get a random fact.
-
-        :param context: The hybrid command context.
         """
         # This will prevent your bot from stopping everything when doing a web request - see: https://discordpy.readthedocs.io/en/stable/faq.html#how-do-i-make-a-web-request
         async with aiohttp.ClientSession() as session:
@@ -110,7 +148,8 @@ class Fun(commands.Cog, name="fun"):
             ) as request:
                 if request.status == 200:
                     data = await request.json()
-                    embed = discord.Embed(description=data["text"], color=0xD75BF4)
+                    embed = discord.Embed(
+                        description=data["text"], color=0xD75BF4)
                 else:
                     embed = discord.Embed(
                         title="Error!",
@@ -120,31 +159,17 @@ class Fun(commands.Cog, name="fun"):
                 await context.send(embed=embed)
 
     @commands.hybrid_command(
-        name="coinflip", description="Make a coin flip, but give your bet before."
+        name="coin", description="Make a coin flip, but give your bet before."
     )
     @checks.not_blacklisted()
-    async def coinflip(self, context: Context) -> None:
+    async def coin(self, context: Context) -> None:
         """
-        Make a coin flip, but give your bet before.
-
-        :param context: The hybrid command context.
+        Make a coin flip
         """
-        buttons = Choice()
-        embed = discord.Embed(description="What is your bet?", color=0xEEEEEE)
-        message = await context.send(embed=embed, view=buttons)
-        await buttons.wait()  # We wait for the user to click a button.
-        result = random.choice(["heads", "tails"])
-        if buttons.value == result:
-            embed = discord.Embed(
-                description=f"Correct! You guessed `{buttons.value}` and I flipped the coin to `{result}`.",
-                color=0xEEEEEE,
-            )
-        else:
-            embed = discord.Embed(
-                description=f"Woops! You guessed `{buttons.value}` and I flipped the coin to `{result}`, better luck next time!",
-                color=0xE02B2B,
-            )
-        await message.edit(embed=embed, view=None, content=None)
+        choice = random.choice(["Heads", "Tails"])
+        embed = discord.Embed(
+            title="🗣️" if choice == 'Heads' else "🐋", description=choice, color=0xEEEEEE)
+        await context.send(embed=embed)
 
     @commands.hybrid_command(
         name="rps", description="Play the rock paper scissors game against the bot."
@@ -153,8 +178,6 @@ class Fun(commands.Cog, name="fun"):
     async def rock_paper_scissors(self, context: Context) -> None:
         """
         Play the rock paper scissors game against the bot.
-
-        :param context: The hybrid command context.
         """
         view = RockPaperScissorsView()
         await context.send("Please make your choice", view=view)

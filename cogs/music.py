@@ -275,16 +275,17 @@ class Music(commands.Cog, name="music"):
 
     def cog_check(self, ctx: commands.Context):
         if not ctx.guild:
-            raise commands.NoPrivateMessage('This command can\'t be used in DM channels.')
+            raise commands.NoPrivateMessage(
+                'This command can\'t be used in DM channels.')
         return True
 
     async def cog_before_invoke(self, ctx: commands.Context):
         ctx.voice_state = self.get_voice_state(ctx)
 
     async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError):
-        await ctx.send('An error occurred: {}'.format(str(error)))
+        raise error
 
-    @commands.command(name='join', invoke_without_subcommand=True, description="Join the Channel")
+    @commands.hybrid_command(name='join', invoke_without_subcommand=True, description="Join the Channel")
     async def _join(self, ctx: commands.Context):
         """Joins a voice channel."""
 
@@ -296,7 +297,7 @@ class Music(commands.Cog, name="music"):
         ctx.voice_state.voice = await destination.connect()
         await ctx.message.add_reaction('✅')
 
-    @commands.command(name='summon')
+    @commands.hybrid_command(name='summon', aliases=['connect', 'here'], description="Summon the Bot to the Channel")
     @commands.has_permissions(manage_guild=True)
     async def _summon(self, ctx: commands.Context, *, channel: discord.VoiceChannel = None) -> None:
         """Summons the bot to a voice channel.
@@ -315,7 +316,7 @@ class Music(commands.Cog, name="music"):
         ctx.voice_state.voice = await destination.connect()
         await ctx.message.add_reaction('✅')
 
-    @commands.command(name='leave', aliases=['disconnect', 'dc'])
+    @commands.hybrid_command(name='leave', aliases=['disconnect', 'dc'], description="Leave the Channel")
     @commands.has_permissions(manage_guild=True)
     async def _leave(self, ctx: commands.Context) -> None:
         """Clears the queue and leaves the voice channel."""
@@ -326,36 +327,43 @@ class Music(commands.Cog, name="music"):
                 color=0xE02B2B
             )
             await ctx.send(embed=embed)
-            return 
+            return
 
         await ctx.voice_state.stop()
         del self.voice_states[ctx.guild.id]
         await ctx.message.add_reaction('👋')
 
-    @commands.command(name='volume')
+    @commands.hybrid_command(name='volume',description="Change the volume of the bot")
     async def _volume(self, ctx: commands.Context, *, volume: int) -> None:
         """Sets the volume of the player."""
 
         if not ctx.voice_state.is_playing:
-            return await ctx.send('Nothing being played at the moment.')
+            return await ctx.send(embed=discord.Embed(title="Not playing any music right now...", color=0xE02B2B))
 
         if 0 > volume > 100:
-            return await ctx.send('Volume must be between 0 and 100')
+            embed = discord.Embed(
+                title="Volume must be between 0 - 100",
+                description=f"▓{'▓'*(ctx.voice_state.volume//10)}{'░'*(10-ctx.voice_state.volume//10)} {volume}",
+                color=0xEEEEEE
+            )
+            return await ctx.send(embed=embed)
 
         ctx.voice_state.volume = volume / 100
         embed = discord.Embed(
             title="Volume",
-            description=f"{'▓'*(volume//10)}{'░'*(10-volume//10)} {volume}",
+            description=f"▓{'▓'*(volume//10)}{'░'*(10-volume//10)} {volume}",
             color=0xEEEEEE
         )
         await ctx.send(embed=embed)
 
-    @commands.command(name='now', aliases=['current', 'playing'])
+    @commands.hybrid_command(name='now', aliases=['current', 'playing'],description="Displays the currently playing song.")
     async def _now(self, ctx: commands.Context):
         """Displays the currently playing song."""
-        await ctx.send(embed=ctx.voice_state.current.create_embed())    
+        await ctx.send(embed=ctx.voice_state.current.create_embed())
 
-    @commands.command(name='pause')
+    @commands.hybrid_command(
+        name="pause", description="Pause the currently playing song."
+    )
     @commands.has_permissions(manage_guild=True)
     async def _pause(self, ctx: commands.Context):
         """Pauses the currently playing song."""
@@ -364,7 +372,9 @@ class Music(commands.Cog, name="music"):
             ctx.voice_state.voice.pause()
             await ctx.message.add_reaction('⏯')
 
-    @commands.command(name='resume')
+    @commands.hybrid_command(
+        name="resume", description="Resume the currently playing song."
+    )
     @commands.has_permissions(manage_guild=True)
     async def _resume(self, ctx: commands.Context):
         """Resumes a currently paused song."""
@@ -373,10 +383,11 @@ class Music(commands.Cog, name="music"):
             ctx.voice_state.voice.resume()
             await ctx.message.add_reaction('⏯')
 
-    @commands.command(name='stop')
+    @commands.hybrid_command(
+        name="stop", description="Stops playing song and clears the queue."
+    )
     @commands.has_permissions(manage_guild=True)
     async def _stop(self, ctx: commands.Context):
-        """Stops playing song and clears the queue."""
 
         ctx.voice_state.songs.clear()
 
@@ -384,14 +395,16 @@ class Music(commands.Cog, name="music"):
             ctx.voice_state.voice.stop()
             await ctx.message.add_reaction('⏹')
 
-    @commands.command(name='skip')
+    @commands.hybrid_command(
+        name="skip", description="skip to the next song"
+    )
     async def _skip(self, ctx: commands.Context):
         """Vote to skip a song. The requester can automatically skip.
         3 skip votes are needed for the song to be skipped.
         """
 
         if not ctx.voice_state.is_playing:
-            return await ctx.send('Not playing any music right now...')
+            return await ctx.send(embed=discord.Embed(title="Not playing any music right now...", color=0xE02B2B))
 
         voter = ctx.message.author
         if voter == ctx.voice_state.current.requester:
@@ -411,7 +424,9 @@ class Music(commands.Cog, name="music"):
         else:
             await ctx.send('You have already voted to skip this song.')
 
-    @commands.command(name='queue')
+    @commands.hybrid_command(
+        name="queue", description="show user queue"
+    )
     async def _queue(self, ctx: commands.Context, *, page: int = 1):
         """Shows the player's queue.
         You can optionally specify the page to show. Each page contains 10 elements.
@@ -435,7 +450,9 @@ class Music(commands.Cog, name="music"):
                  .set_footer(text='Viewing page {}/{}'.format(page, pages)))
         await ctx.send(embed=embed)
 
-    @commands.command(name='shuffle')
+    @commands.hybrid_command(
+        name="shuffle", description="shuffle the queue"
+    )
     async def _shuffle(self, ctx: commands.Context):
         """Shuffles the queue."""
 
@@ -445,9 +462,10 @@ class Music(commands.Cog, name="music"):
         ctx.voice_state.songs.shuffle()
         await ctx.message.add_reaction('✅')
 
-    @commands.command(name='remove')
+    @commands.hybrid_command(
+        name="remove", description="Removes a song from the queue at a given index."
+    )
     async def _remove(self, ctx: commands.Context, index: int):
-        """Removes a song from the queue at a given index."""
 
         if len(ctx.voice_state.songs) == 0:
             return await ctx.send(embed=discord.Embed(title="Empty Queue", color=0xEEEEEE))
@@ -455,7 +473,9 @@ class Music(commands.Cog, name="music"):
         ctx.voice_state.songs.remove(index - 1)
         await ctx.message.add_reaction('✅')
 
-    @commands.command(name='loop')
+    @commands.hybrid_command(
+        name="loop", description="Toggle to loops the currently playing song"
+    )
     async def _loop(self, ctx: commands.Context):
         """Loops the currently playing song.
         Invoke this command again to unloop the song.
@@ -485,14 +505,14 @@ class Music(commands.Cog, name="music"):
                 source = await YTDLSource.create_source(ctx, search, loop=self.bot.loop)
                 await ctx.message.add_reaction('🎤')
             except YTDLError as e:
-                await ctx.send('An error occurred while processing this request: {}'.format(str(e)))
+                raise e
             else:
                 song = Song(source)
-
                 await ctx.voice_state.songs.put(song)
-                embed = discord.Embed(title="Added to queue", description=f"**{source.title}**", color=0xEEEEEE)
+                embed = discord.Embed(
+                    title="Added to queue", description=f"**{source.title}**", color=0xEEEEEE)
                 await ctx.send(embed=embed)
-                await ctx.message.add_reaction('⌛')
+                # await ctx.message.add_reaction('⌛')
 
     @_join.before_invoke
     @_play.before_invoke

@@ -36,3 +36,11 @@ class YTDLError(commands.CheckFailure):
     def __init__(self, message="YTDL Error!"):
         self.message = message
         super().__init__(self.message)
+        
+class ApiError(commands.CheckFailure):
+    """
+    thrown when there is an error with the api
+    """
+    def __init__(self, message="There is something wrong with the API, please try again later"):
+        self.message = message
+        super().__init__(self.message)

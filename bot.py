@@ -5,12 +5,10 @@ import os
 import platform
 import random
 import sys
-
 import aiosqlite
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot, Context
-
 import exceptions
 
 if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}/config.json"):
@@ -19,7 +17,9 @@ else:
     with open(f"{os.path.realpath(os.path.dirname(__file__))}/config.json") as file:
         config = json.load(file)
 
-"""	
+with open(f"{os.path.realpath(os.path.dirname(__file__))}/cogs_emoji.json") as file:
+        cogs_emoji = json.load(file)
+"""
 Setup bot intents (events restrictions)
 For more information about intents, please go to the following websites:
 https://discordpy.readthedocs.io/en/latest/intents.html
@@ -40,7 +40,8 @@ intents.guild_typing = True
 intents.guilds = True
 intents.integrations = True
 intents.invites = True
-intents.messages = True # `message_content` is required to get the content of the messages
+# `message_content` is required to get the content of the messages
+intents.messages = True
 intents.reactions = True
 intents.typing = True
 intents.voice_states = True
@@ -57,10 +58,73 @@ intents.message_content = True
 intents.members = True
 intents.presences = True
 
+
+class CustomHelpCommand(commands.HelpCommand):
+
+    def __init__(self, **options) -> None:
+        super().__init__(**options)
+
+    async def send_bot_help(self, mapping) -> None:
+        context = self.context
+        bot = context.bot
+        embed = discord.Embed(
+            title="Command List",
+            color=0xEEEEEE,
+        )
+        for cog in bot.cogs:
+            cog = bot.get_cog(cog)
+            commands = cog.get_commands()
+            data = []
+            for command in commands:
+                if command.hidden:
+                    continue
+                data.append(f"`{command.name}`")
+            help_text = ",".join(data)
+            embed.add_field(name=cogs_emoji[cog.qualified_name]+cog.qualified_name.capitalize(), value=f"{help_text}", inline=False)
+        await self.get_destination().send(embed=embed)
+
+    async def send_cog_help(self, cog):
+        commands = cog.get_commands()
+        embed = discord.Embed(
+            title=cogs_emoji[cog.qualified_name]+cog.qualified_name.capitalize(),
+            color=0xEEEEEE,
+        )
+        data = []
+        for command in commands:
+            if command.hidden:
+                continue
+            data.append(f"```{command.name} - {command.description}```")
+        help_text = "\n".join(data)
+        embed.add_field(value=f"{help_text}", inline=False)
+        await self.get_destination().send(embed=embed)
+
+    async def send_group_help(self, group):
+        embed = discord.Embed(
+            title=group.name,
+            color=0xEEEEEE,
+        )
+        data = []
+        for command in group.commands:
+            if command.hidden:
+                continue
+            data.append(f"```{command.name} - {command.description}```")
+        help_text = "\n".join(data)
+        embed.add_field(value=f"{help_text}", inline=False)
+        await self.get_destination().send(embed=embed)
+
+    async def send_command_help(self, command):
+        embed = discord.Embed(
+            title=command.name,
+            description=command.help,
+            color=0xEEEEEE,
+        )
+        await self.get_destination().send(embed=embed)
+
+
 bot = Bot(
     command_prefix=commands.when_mentioned_or(config["prefix"]),
     intents=intents,
-    help_command=None,
+    help_command=CustomHelpCommand(),
 )
 
 # Setup both of the loggers
@@ -272,16 +336,16 @@ async def on_command_error(context: Context, error) -> None:
             color=0xE02B2B,
         )
         await context.send(embed=embed)
-        
+
     elif isinstance(error, exceptions.YTDLError):
         embed = discord.Embed(
             description=f"An error occurred {error}",
-           color=0xE02B2B, )
-        
+            color=0xE02B2B, )
+
     elif isinstance(error, exceptions.VoiceError):
         embed = discord.Embed(
             description=f"An error occurred while trying to play the requested song.{error}",
-           color=0xE02B2B, )
+            color=0xE02B2B, )
     else:
         raise error
 
