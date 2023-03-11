@@ -18,7 +18,7 @@ else:
         config = json.load(file)
 
 with open(f"{os.path.realpath(os.path.dirname(__file__))}/cogs_emoji.json") as file:
-        cogs_emoji = json.load(file)
+    cogs_emoji = json.load(file)
 """
 Setup bot intents (events restrictions)
 For more information about intents, please go to the following websites:
@@ -80,22 +80,27 @@ class CustomHelpCommand(commands.HelpCommand):
                     continue
                 data.append(f"`{command.name}`")
             help_text = ",".join(data)
-            embed.add_field(name=cogs_emoji[cog.qualified_name]+cog.qualified_name.capitalize(), value=f"{help_text}", inline=False)
+            if help_text == "":
+                continue
+            embed.add_field(name=cogs_emoji[cog.qualified_name] +
+                            cog.qualified_name.capitalize(), value=f"{help_text}", inline=False)
         await self.get_destination().send(embed=embed)
 
     async def send_cog_help(self, cog):
         commands = cog.get_commands()
         embed = discord.Embed(
-            title=cogs_emoji[cog.qualified_name]+cog.qualified_name.capitalize(),
+            title=cogs_emoji[cog.qualified_name] +
+            cog.qualified_name.capitalize(),
             color=0xEEEEEE,
         )
         data = []
         for command in commands:
             if command.hidden:
                 continue
-            data.append(f"```{command.name} - {command.description}```")
+            data.append(f"`{command.name} - {command.description}`")
         help_text = "\n".join(data)
-        embed.add_field(value=f"{help_text}", inline=False)
+        print(help_text)
+        embed.add_field(name="", value=f"{help_text}", inline=False)
         await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group):
@@ -107,9 +112,9 @@ class CustomHelpCommand(commands.HelpCommand):
         for command in group.commands:
             if command.hidden:
                 continue
-            data.append(f"```{command.name} - {command.description}```")
+            data.append(f"`{command.name}` - {command.description}")
         help_text = "\n".join(data)
-        embed.add_field(value=f"{help_text}", inline=False)
+        embed.add_field(name="", value=f"{help_text}", inline=False)
         await self.get_destination().send(embed=embed)
 
     async def send_command_help(self, command):

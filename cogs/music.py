@@ -333,9 +333,9 @@ class Music(commands.Cog, name="music"):
         del self.voice_states[ctx.guild.id]
         await ctx.message.add_reaction('👋')
 
-    @commands.hybrid_command(name='volume',description="Change the volume of the bot")
+    @commands.hybrid_command(name='volume', description="Change the volume of the bot")
     async def _volume(self, ctx: commands.Context, *, volume: int) -> None:
-        """Sets the volume of the player."""
+        """Sets the volume of the bot."""
 
         if not ctx.voice_state.is_playing:
             return await ctx.send(embed=discord.Embed(title="Not playing any music right now...", color=0xE02B2B))
@@ -356,14 +356,12 @@ class Music(commands.Cog, name="music"):
         )
         await ctx.send(embed=embed)
 
-    @commands.hybrid_command(name='now', aliases=['current', 'playing'],description="Displays the currently playing song.")
+    @commands.hybrid_command(name='now', aliases=['current', 'playing'], description="Displays the currently playing song.")
     async def _now(self, ctx: commands.Context):
         """Displays the currently playing song."""
         await ctx.send(embed=ctx.voice_state.current.create_embed())
 
-    @commands.hybrid_command(
-        name="pause", description="Pause the currently playing song."
-    )
+    @commands.hybrid_command(name="pause", description="Pause the currently playing song.")
     @commands.has_permissions(manage_guild=True)
     async def _pause(self, ctx: commands.Context):
         """Pauses the currently playing song."""
@@ -372,9 +370,7 @@ class Music(commands.Cog, name="music"):
             ctx.voice_state.voice.pause()
             await ctx.message.add_reaction('⏯')
 
-    @commands.hybrid_command(
-        name="resume", description="Resume the currently playing song."
-    )
+    @commands.hybrid_command(name="resume", description="Resume the currently playing song.")
     @commands.has_permissions(manage_guild=True)
     async def _resume(self, ctx: commands.Context):
         """Resumes a currently paused song."""
@@ -383,12 +379,12 @@ class Music(commands.Cog, name="music"):
             ctx.voice_state.voice.resume()
             await ctx.message.add_reaction('⏯')
 
-    @commands.hybrid_command(
-        name="stop", description="Stops playing song and clears the queue."
-    )
+    @commands.hybrid_command(name="stop", description="Stops playing song and clears the queue.")
     @commands.has_permissions(manage_guild=True)
     async def _stop(self, ctx: commands.Context):
-
+        """
+        Stops playing song and clears the queue.
+        """
         ctx.voice_state.songs.clear()
 
         if ctx.voice_state.is_playing:
@@ -428,7 +424,8 @@ class Music(commands.Cog, name="music"):
         name="queue", description="show user queue"
     )
     async def _queue(self, ctx: commands.Context, *, page: int = 1):
-        """Shows the player's queue.
+        """
+        Shows the player's queue.
         You can optionally specify the page to show. Each page contains 10 elements.
         """
 
@@ -454,7 +451,9 @@ class Music(commands.Cog, name="music"):
         name="shuffle", description="shuffle the queue"
     )
     async def _shuffle(self, ctx: commands.Context):
-        """Shuffles the queue."""
+        """
+        Shuffles the queue.
+        """
 
         if len(ctx.voice_state.songs) == 0:
             return await ctx.send(embed=discord.Embed(title="Empty Queue", color=0xEEEEEE))
@@ -466,7 +465,9 @@ class Music(commands.Cog, name="music"):
         name="remove", description="Removes a song from the queue at a given index."
     )
     async def _remove(self, ctx: commands.Context, index: int):
-
+        """
+        Removes a song from the queue at a given index.
+        """
         if len(ctx.voice_state.songs) == 0:
             return await ctx.send(embed=discord.Embed(title="Empty Queue", color=0xEEEEEE))
 
@@ -474,10 +475,11 @@ class Music(commands.Cog, name="music"):
         await ctx.message.add_reaction('✅')
 
     @commands.hybrid_command(
-        name="loop", description="Toggle to loops the currently playing song"
+        name="loop", description="Toggle to loops the song"
     )
     async def _loop(self, ctx: commands.Context):
-        """Loops the currently playing song.
+        """
+        Loops the currently playing song.
         Invoke this command again to unloop the song.
         """
 
@@ -490,11 +492,11 @@ class Music(commands.Cog, name="music"):
 
     @commands.command(name='play')
     async def _play(self, ctx: commands.Context, *, search: str):
-        """Plays a song.
-        If there are songs in the queue, this will be queued until the
-        other songs finished playing.
+        """
+        Plays a song. If there are songs in the queue.
         This command automatically searches from various sites if no URL is provided.
-        A list of these sites can be found here: https://rg3.github.io/youtube-dl/supportedsites.html
+        
+        play [url]
         """
 
         if not ctx.voice_state.voice:

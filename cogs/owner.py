@@ -21,8 +21,7 @@ class Owner(commands.Cog, name="owner"):
         """
         Synchonizes the slash commands.
 
-        :param context: The command context.
-        :param scope: The scope of the sync. Can be `global` or `guild`.
+        sync [scope] scope ->`global` or `guild`.
         """
 
         if scope == "global":
@@ -60,8 +59,7 @@ class Owner(commands.Cog, name="owner"):
         """
         Unsynchonizes the slash commands.
 
-        :param context: The command context.
-        :param scope: The scope of the sync. Can be `global`, `current_guild` or `guild`.
+        sync [scope] scope ->`global`,`current_guild` or `guild`.
         """
 
         if scope == "global":
@@ -98,8 +96,7 @@ class Owner(commands.Cog, name="owner"):
         """
         The bot will load the given cog.
 
-        :param context: The hybrid command context.
-        :param cog: The name of the cog to load.
+        load [cog] -> The name of the cog to load.
         """
         try:
             await self.bot.load_extension(f"cogs.{cog}")
@@ -125,8 +122,7 @@ class Owner(commands.Cog, name="owner"):
         """
         The bot will unload the given cog.
 
-        :param context: The hybrid command context.
-        :param cog: The name of the cog to unload.
+        unload [cog] -> The name of the cog to unload.
         """
         try:
             await self.bot.unload_extension(f"cogs.{cog}")
@@ -152,8 +148,7 @@ class Owner(commands.Cog, name="owner"):
         """
         The bot will reload the given cog.
 
-        :param context: The hybrid command context.
-        :param cog: The name of the cog to reload.
+        reload [cog] -> The name of the cog to reload.
         """
         try:
             await self.bot.reload_extension(f"cogs.{cog}")
@@ -178,7 +173,7 @@ class Owner(commands.Cog, name="owner"):
         """
         Shuts down the bot.
 
-        :param context: The hybrid command context.
+        shutdown
         """
         embed = discord.Embed(description="Shutting down. Bye! :wave:", color=0xEEEEEE)
         await context.send(embed=embed)
@@ -195,8 +190,7 @@ class Owner(commands.Cog, name="owner"):
         """
         The bot will say anything you want.
 
-        :param context: The hybrid command context.
-        :param message: The message that should be repeated by the bot.
+        say [message]
         """
         await context.send(message)
 
@@ -211,8 +205,7 @@ class Owner(commands.Cog, name="owner"):
         """
         The bot will say anything you want, but using embeds.
 
-        :param context: The hybrid command context.
-        :param message: The message that should be repeated by the bot.
+        embed [message]
         """
         embed = discord.Embed(description=message, color=0xEEEEEE)
         await context.send(embed=embed)
@@ -226,8 +219,6 @@ class Owner(commands.Cog, name="owner"):
     async def blacklist(self, context: Context) -> None:
         """
         Lets you add or remove a user from not being able to use the bot.
-
-        :param context: The hybrid command context.
         """
         if context.invoked_subcommand is None:
             embed = discord.Embed(
@@ -246,8 +237,6 @@ class Owner(commands.Cog, name="owner"):
     async def blacklist_show(self, context: Context) -> None:
         """
         Shows the list of all blacklisted users.
-
-        :param context: The hybrid command context.
         """
         blacklisted_users = await db_manager.get_blacklisted_users()
         if len(blacklisted_users) == 0:
@@ -279,8 +268,7 @@ class Owner(commands.Cog, name="owner"):
         """
         Lets you add a user from not being able to use the bot.
 
-        :param context: The hybrid command context.
-        :param user: The user that should be added to the blacklist.
+        blacklist add [user]
         """
         user_id = user.id
         if await db_manager.is_blacklisted(user_id):
@@ -312,8 +300,7 @@ class Owner(commands.Cog, name="owner"):
         """
         Lets you remove a user from not being able to use the bot.
 
-        :param context: The hybrid command context.
-        :param user: The user that should be removed from the blacklist.
+        blacklist remove [user]
         """
         user_id = user.id
         if not await db_manager.is_blacklisted(user_id):

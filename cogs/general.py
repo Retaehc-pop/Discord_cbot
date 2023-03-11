@@ -16,12 +16,12 @@ class General(commands.Cog, name="general"):
         
     @commands.hybrid_command(
         name="serverinfo",
-        description="Get some useful (or not) information about the server.",
+        description="Get information about the server.",
     )
     @checks.not_blacklisted()
     async def serverinfo(self, context: Context) -> None:
         """
-        Get information about the server.
+        Get some useful (or not) information about the server.
         """
         roles = [role.name for role in context.guild.roles]
         if len(roles) > 50:
@@ -48,7 +48,7 @@ class General(commands.Cog, name="general"):
     @checks.not_blacklisted()
     async def ping(self, context: Context) -> None:
         """
-        Check if the bot is alive.
+        Check if the bot is alive. If it is, it will reply with the latency.
         """
         embed = discord.Embed(
             title="🏓 Pong!",

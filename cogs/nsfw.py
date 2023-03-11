@@ -17,20 +17,25 @@ class NSFW(commands.Cog, name="nsfw"):
     @commands.is_nsfw()
     @checks.not_blacklisted()
     async def _nsfw(self, context: Context, *, tag=''):
+        """
+        available categories 
+        `ahegao`, `anal`, `asian`, `ass`, `bdsm`, `boobs`, `creampie`, `cum`, 
+        `feet`, `gay`, `gif`, `hentai`, `insertion`, `lesbian`, `milf`, `penis`, 
+        `pussy`, `redhead`, `short`, `thigh`, `toys`, `subreddit`, `video`
+        """
         await context.message.delete()
         choice = ['ahegao', 'anal', 'asian', 'ass', 'bdsm', 'boobs', 'creampie', 'cum', 'feet', 'gay', 'gif', 'hentai',
-                  'insertion', 'lesbian', 'milf', 'penis', 'pussy', 'redhead', 'short', 'thigh', 'toys', 'subreddit', 'video', '']
+                  'insertion', 'lesbian', 'milf', 'penis', 'pussy', 'redhead', 'short', 'thigh', 'toys', 'subreddit', 'video']
         if tag not in choice:
-            return await context.send(choice)
-        if tag == '':
             tag = random.choice(choice)
         async with aiohttp.ClientSession() as session:
             async with session.get(f"https://api-popcord.vercel.app/img/nsfw?type={tag}") as request:
                 if request.status == 200:
                     data = await request.json()
                     if tag == 'video':
+                        await context.message.delete()
                         return await context.send(data['url'])
-                    embed = discord.Embed(title=tag, color=0xEEEEEE)
+                    embed = discord.Embed( color=0xEEEEEE)
                     embed.set_image(url=data["url"])
                 else:
                     embed = discord.Embed(
@@ -39,6 +44,7 @@ class NSFW(commands.Cog, name="nsfw"):
                         color=0xE02B2B,
                     )
                 await context.send(embed=embed)
+                await context.message.delete()
 
 async def setup(bot):
     await bot.add_cog(NSFW(bot))

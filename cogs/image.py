@@ -16,6 +16,9 @@ class Images(commands.Cog, name="image"):
     @commands.hybrid_command(name="cat", description="Random cat image.")
     @checks.not_blacklisted()
     async def _cat(self, context: Context) -> None:
+        """
+        Random cat image.
+        """
         async with context.channel.typing():
             async with aiohttp.ClientSession() as session:
                 async with session.get("https://aws.random.cat/meow") as request:
@@ -34,6 +37,9 @@ class Images(commands.Cog, name="image"):
     @commands.hybrid_command(name="dog", description="Random dog image.")
     @checks.not_blacklisted()
     async def dog(self,  context: Context):
+        """
+        Random dog image.
+        """
         async with context.channel.typing():
             async with aiohttp.ClientSession() as cs:
                 async with cs.get("https://random.dog/woof.json") as request:
