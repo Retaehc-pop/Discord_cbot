@@ -56,6 +56,22 @@ class General(commands.Cog, name="general"):
             color=0xEEEEEE,
         )
         await context.send(embed=embed)
+        
+    @commands.hybrid_command(name="donate", description="one-time contribution")
+    async def _donate(self, context: Context) -> None:
+        """
+        If you want to support the development of this bot, you can do so by donating to the developer.
+        """
+        embed = discord.Embed(
+            title="Cbot",
+            description=
+            """
+            If you enjoy using thi bot, please consider donating to keep it online and performing well!
+            [Paypal](https://www.paypal.com/paypalme/retaehcpop) 
+            """,
+            color=0xEEEEEE,
+        )
+        await context.send(embed=embed)
 
     @commands.hybrid_command(name="invite", description="Get the invite link of the bot to be able to invite it.",)
     @checks.not_blacklisted()
@@ -91,9 +107,12 @@ class General(commands.Cog, name="general"):
                         data = await request.json()
                         events = data['events']
                         chosen_event = random.choice(events)
-                        embed = discord.Embed(title=f"{date}/{month}/{year}",color=0xEEEEEE)
-                        embed.add_field(name=f"{year-int(chosen_event['year'])} years ago",value=chosen_event['description'])
-                        embed.set_footer(text=f"Source: {chosen_event['wikipedia'][0]['wikipedia']}")
+                        embed = discord.Embed(title=f":calendar:{date}/{month}/{year}",color=0xEEEEEE)
+                        embed.add_field(name=f"{year-int(chosen_event['year'])} years ago",
+                                        value=f"""
+                                        {chosen_event['description']}
+                                        [Source]({chosen_event['wikipedia'][0]['wikipedia']})
+                                        """)
                     else:
                         embed = discord.Embed(
                             title="Error!",
@@ -109,7 +128,6 @@ class General(commands.Cog, name="general"):
         """
         Get the current price of bitcoin.
         """
-        # This will prevent your bot from stopping everything when doing a web request - see: https://discordpy.readthedocs.io/en/stable/faq.html#how-do-i-make-a-web-request
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 "https://api.coindesk.com/v1/bpi/currentprice/BTC.json"
