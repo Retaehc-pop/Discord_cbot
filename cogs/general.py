@@ -6,14 +6,14 @@ import discord
 
 from discord.ext import commands
 from discord.ext.commands import Context
-
+from datetime import datetime
 from helpers import checks
 
 
 class General(commands.Cog, name="general"):
     def __init__(self, bot):
         self.bot = bot
-        
+
     @commands.hybrid_command(
         name="serverinfo",
         description="Get information about the server.",
@@ -44,7 +44,7 @@ class General(commands.Cog, name="general"):
         embed.set_footer(text=f"Created at: {context.guild.created_at}")
         await context.send(embed=embed)
 
-    @commands.hybrid_command(name="ping",description="Check if the bot is alive.",)
+    @commands.hybrid_command(name="ping", description="Check if the bot is alive.",)
     @checks.not_blacklisted()
     async def ping(self, context: Context) -> None:
         """
@@ -57,7 +57,7 @@ class General(commands.Cog, name="general"):
         )
         await context.send(embed=embed)
 
-    @commands.hybrid_command(name="invite",description="Get the invite link of the bot to be able to invite it.",)
+    @commands.hybrid_command(name="invite", description="Get the invite link of the bot to be able to invite it.",)
     @checks.not_blacklisted()
     async def invite(self, context: Context) -> None:
         """
@@ -74,8 +74,35 @@ class General(commands.Cog, name="general"):
         except discord.Forbidden:
             await context.send(embed=embed)
 
-    
 
+    @commands.hybrid_command(name="today",description="get today date and fun fact")
+    @checks.not_blacklisted()
+    async def _today(self, context: Context) -> None:
+        """
+        get today date and fun fact"
+        """
+        month = datetime.now().month
+        date = datetime.now().day
+        year = datetime.now().year
+        async with context.typing():
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"https://byabbe.se/on-this-day/{month}/{date}/events.json") as request:
+                    if request.status == 200:
+                        data = await request.json()
+                        events = data['events']
+                        chosen_event = random.choice(events)
+                        embed = discord.Embed(title=f"{date}/{month}/{year}",color=0xEEEEEE)
+                        embed.add_field(name=f"{year-int(chosen_event['year'])} years ago",value=chosen_event['description'])
+                        embed.set_footer(text=f"Source: {chosen_event['wikipedia'][0]['wikipedia']}")
+                    else:
+                        embed = discord.Embed(
+                            title="Error!",
+                            description="There is something wrong with the API, please try again later",
+                            color=0xE02B2B,
+                        )
+                    await context.send(embed=embed)
+                
+                
     @commands.hybrid_command(name="bitcoin",description="Get the current price of bitcoin.")
     @checks.not_blacklisted()
     async def bitcoin(self, context: Context) -> None:
